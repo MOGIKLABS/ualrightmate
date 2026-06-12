@@ -8,7 +8,7 @@
       content="u alright mate? is a cute non-medical virtual pet for idea dumping, formulating, and exporting thoughts into work or social posts."
     />
     <title>u alright mate?</title>
-    <link rel="stylesheet" href="./styles.css?v=20260612i" />
+    <link rel="stylesheet" href="./styles.css?v=20260612j" />
   </head>
   <body>
     <div class="app-shell">
@@ -50,7 +50,7 @@
                   <path d="M12 4 5 7v5c0 4.3 2.8 6.9 7 8 4.2-1.1 7-3.7 7-8V7l-7-3Z" />
                 </svg>
               </button>
-              <button id="orbExport" class="device-orb orb-export" type="button" aria-label="Open send out" title="Send out">
+              <button id="orbExport" class="device-orb orb-export" type="button" aria-label="Open share" title="Share">
                 <svg viewBox="0 0 24 24">
                   <path d="M4 6h16v12H4zM8 10h5M8 14h8M16 9l3 3-3 3" />
                 </svg>
@@ -87,6 +87,17 @@
             <div class="meter-track">
               <div id="hatchFill" class="meter-fill"></div>
             </div>
+          </div>
+
+          <div class="maturity-card" aria-label="Mate maturity">
+            <div class="maturity-copy">
+              <span>maturity</span>
+              <strong id="maturityStatus">day 1 · baby status</strong>
+            </div>
+            <div class="maturity-track" aria-hidden="true">
+              <span id="maturityFill"></span>
+            </div>
+            <p id="maturityHint">ideas and chats speed up Pip's growth</p>
           </div>
 
           <div class="customizer" aria-labelledby="customizeTitle">
@@ -253,14 +264,14 @@
             <span class="window-dot aqua"></span>
             <span class="window-dot pink"></span>
             <span class="window-dot lime"></span>
-            <span>sendout.exe</span>
+            <span>share.exe</span>
           </div>
 
           <div class="panel-body">
             <div class="panel-heading">
               <div>
-                <h2 id="exportTitle">send out</h2>
-                <p>workspaces, notes, socials</p>
+                <h2 id="exportTitle">share</h2>
+                <p>productivity export or SNS</p>
               </div>
               <button id="copyButton" class="icon-button" type="button" aria-label="Copy current output" title="Copy">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -271,21 +282,16 @@
             </div>
 
             <div class="target-grid">
-              <button data-export="notion" class="target active" type="button">
-                <span class="target-icon">N</span>
-                <span>Notion</span>
+              <button data-export="productivity" class="target active target-wide" type="button">
+                <span class="target-icon">P</span>
+                <span>
+                  <strong>Productivity App &gt; Export</strong>
+                  <small>Notion / Obsidian / Workspace</small>
+                </span>
               </button>
-              <button data-export="obsidian" class="target" type="button">
-                <span class="target-icon">O</span>
-                <span>Obsidian</span>
-              </button>
-              <button data-export="docs" class="target" type="button">
-                <span class="target-icon">G</span>
-                <span>Workspace</span>
-              </button>
-              <button data-export="social" class="target" type="button">
+              <button data-export="sns" class="target" type="button">
                 <span class="target-icon">@</span>
-                <span>Social</span>
+                <span>SNS</span>
               </button>
             </div>
 
@@ -325,6 +331,6 @@
       };
     </script>
     <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
-    <script src="./app.js?v=20260612i"></script>
+    <script src="./app.js?v=20260612j"></script>
   </body>
 </html>

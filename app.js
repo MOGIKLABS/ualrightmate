@@ -7,10 +7,12 @@ const fallbackState = {
   accessory: "starry",
   character: "pip",
   playerEmoji: "🥚",
+  startedAt: new Date().toISOString(),
+  maturityPoints: 0,
   thoughts: "",
   sparks: [],
   activeTab: "sparkList",
-  exportTarget: "notion",
+  exportTarget: "productivity",
   hatch: 8,
   ideaDates: [],
   lastThoughtMilestone: 0,
@@ -56,57 +58,12 @@ const characterCatalog = [
 const playerEmojiChoices = ["🥚", "✨", "💿", "🌈", "⚡", "💭", "🌱", "🫧"];
 
 const integrations = {
-  notion: {
-    label: "Notion",
+  productivity: {
+    label: "Productivity App > Export",
     extension: "md",
     type: "text/markdown",
     render: ({ sparks, plan, post }) => {
-      return [
-        "# u alright mate?",
-        "",
-        "## Sparks",
-        ...asMarkdownList(sparks),
-        "",
-        "## Action Board",
-        ...plan.map((item) => `- [ ] **${item.title}** - ${item.body}`),
-        "",
-        "## Social Draft",
-        post,
-      ].join("\n");
-    },
-  },
-  obsidian: {
-    label: "Obsidian",
-    extension: "md",
-    type: "text/markdown",
-    render: ({ sparks, plan, post }) => {
-      const stamp = new Date().toISOString().slice(0, 10);
-      return [
-        "---",
-        `created: ${stamp}`,
-        "source: u alright mate?",
-        "tags: [idea-dump, formulated]",
-        "---",
-        "",
-        "# idea dump",
-        "",
-        "## linked sparks",
-        ...asMarkdownList(sparks.map((spark) => `[[${titleCase(spark).slice(0, 64)}]]`)),
-        "",
-        "## next moves",
-        ...plan.map((item) => `- [ ] ${item.title}: ${item.body}`),
-        "",
-        "## post draft",
-        post,
-      ].join("\n");
-    },
-  },
-  docs: {
-    label: "Google Workspace",
-    extension: "txt",
-    type: "text/plain",
-    render: ({ sparks, plan, post }) => {
-      return [
+      const workspaceLines = [
         "u alright mate? / workspace outline",
         "",
         "1. Raw sparks",
@@ -115,13 +72,47 @@ const integrations = {
         "2. Action list",
         ...plan.map((item, index) => `   ${index + 1}. ${item.title}: ${item.body}`),
         "",
-        "3. Social or update draft",
+        "3. SNS draft",
         `   ${post}`,
+      ];
+
+      return [
+        "# Productivity App > Export",
+        "",
+        "## Notion",
+        "",
+        "### Sparks",
+        ...asMarkdownList(sparks),
+        "",
+        "### Action Board",
+        ...plan.map((item) => `- [ ] **${item.title}** - ${item.body}`),
+        "",
+        "### SNS Draft",
+        post,
+        "",
+        "## Obsidian",
+        "---",
+        `created: ${new Date().toISOString().slice(0, 10)}`,
+        "source: u alright mate?",
+        "tags: [idea-dump, formulated]",
+        "---",
+        "",
+        "### linked sparks",
+        ...asMarkdownList(sparks.map((spark) => `[[${titleCase(spark).slice(0, 64)}]]`)),
+        "",
+        "### next moves",
+        ...plan.map((item) => `- [ ] ${item.title}: ${item.body}`),
+        "",
+        "### SNS draft",
+        post,
+        "",
+        "## Workspace",
+        ...workspaceLines,
       ].join("\n");
     },
   },
-  social: {
-    label: "Social",
+  sns: {
+    label: "SNS",
     extension: "txt",
     type: "text/plain",
     render: ({ post }) => post,
@@ -144,6 +135,9 @@ const els = {
   thoughtBoard: document.querySelector(".thought-board"),
   exportPanel: document.querySelector(".export-panel"),
   customizer: document.querySelector(".customizer"),
+  maturityStatus: document.querySelector("#maturityStatus"),
+  maturityHint: document.querySelector("#maturityHint"),
+  maturityFill: document.querySelector("#maturityFill"),
   hatchPercent: document.querySelector("#hatchPercent"),
   hatchFill: document.querySelector("#hatchFill"),
   thoughtInput: document.querySelector("#thoughtInput"),
@@ -256,7 +250,7 @@ function wireExportTargets() {
     button.addEventListener("click", () => {
       state.exportTarget = button.dataset.export;
       bumpHatch(1);
-      say(`${integrations[state.exportTarget].label} format ready`);
+      if (els.toast) els.toast.textContent = `${integrations[state.exportTarget].label} selected`;
       render();
     });
   });
@@ -266,7 +260,7 @@ function wirePlayerOrbs() {
   els.orbCharacter?.addEventListener("click", cyclePlayerEmoji);
   els.orbThoughts?.addEventListener("click", openThoughtsFeelings);
   els.orbNudge?.addEventListener("click", () => addNudgePrompt("nudge dropped in"));
-  els.orbExport?.addEventListener("click", openSendOut);
+  els.orbExport?.addEventListener("click", openShare);
 }
 
 function wireCoreActions() {
@@ -346,12 +340,12 @@ function openThoughtsFeelings() {
   flashPanel(els.thoughtBoard);
 }
 
-function openSendOut() {
+function openShare() {
   bumpHatch(1);
   render();
   els.exportPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
   els.exportOutput?.focus({ preventScroll: true });
-  say(`${integrations[state.exportTarget].label} ready`);
+  if (els.toast) els.toast.textContent = "share open";
   flashPanel(els.exportPanel);
 }
 
@@ -819,6 +813,22 @@ function renderMeta() {
   els.hatchPercent.textContent = `${state.hatch}%`;
   els.hatchFill.style.width = `${state.hatch}%`;
   els.sessionStamp.textContent = `local ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  renderMaturity();
+}
+
+function renderMaturity() {
+  const maturity = getMateMaturity();
+  if (els.maturityStatus) {
+    els.maturityStatus.textContent = `day ${maturity.day} · ${maturity.status}`;
+  }
+  if (els.maturityFill) {
+    els.maturityFill.style.width = `${maturity.progress}%`;
+  }
+  if (els.maturityHint) {
+    els.maturityHint.textContent = maturity.next
+      ? `next: ${maturity.next.status} at day ${maturity.next.day}. ideas and chats speed it up.`
+      : "fully fledged adult. more ideas keep Pip sharper.";
+  }
 }
 
 function renderCharacterRoster() {
@@ -832,10 +842,22 @@ function renderCharacterRoster() {
 }
 
 function normalizeState() {
+  const legacyExportTargets = {
+    notion: "productivity",
+    obsidian: "productivity",
+    docs: "productivity",
+    social: "sns",
+  };
   if (!Array.isArray(state.ideaDates)) state.ideaDates = [];
   if (!Array.isArray(state.voiceLog)) state.voiceLog = [];
   if (!state.character) state.character = "pip";
   if (!playerEmojiChoices.includes(state.playerEmoji)) state.playerEmoji = playerEmojiChoices[0];
+  if (!state.startedAt || Number.isNaN(new Date(state.startedAt).getTime())) {
+    state.startedAt = new Date().toISOString();
+  }
+  if (!Number.isFinite(state.maturityPoints)) state.maturityPoints = 0;
+  state.exportTarget = legacyExportTargets[state.exportTarget] || state.exportTarget;
+  if (!integrations[state.exportTarget]) state.exportTarget = "productivity";
   if (typeof state.lastVoiceTranscript !== "string") state.lastVoiceTranscript = "waiting";
   if (typeof state.lastVoiceReply !== "string") state.lastVoiceReply = "ready for a spark";
   if (!Number.isFinite(state.lastThoughtMilestone)) state.lastThoughtMilestone = 0;
@@ -857,6 +879,33 @@ function getHatchStatus(hatch, characterId = "pip") {
   if (hatch >= 40) return "shell cracking";
   if (hatch >= 18) return "egg warming";
   return "egg mode";
+}
+
+function getMateMaturity() {
+  const startedAt = new Date(state.startedAt).getTime();
+  const calendarDay = Number.isFinite(startedAt)
+    ? Math.max(1, Math.floor((Date.now() - startedAt) / 86400000) + 1)
+    : 1;
+  const engagementDayBoost = Math.floor((state.maturityPoints || 0) / 18);
+  const day = Math.min(14, Math.max(1, calendarDay + engagementDayBoost));
+  const progress = Math.min(100, Math.round((day / 14) * 100));
+  const status = getMaturityStatus(day);
+  const next = getNextMaturity(day);
+  return { day, status, progress, next };
+}
+
+function getMaturityStatus(day) {
+  if (day >= 14) return "fully fledged adult";
+  if (day >= 5) return "teenager";
+  if (day >= 3) return "toddler";
+  return "baby status";
+}
+
+function getNextMaturity(day) {
+  if (day < 3) return { day: 3, status: "toddler" };
+  if (day < 5) return { day: 5, status: "teenager" };
+  if (day < 14) return { day: 14, status: "fully fledged adult" };
+  return null;
 }
 
 function getCharacterName(characterId) {
@@ -1042,7 +1091,7 @@ function createPost(sparks) {
 }
 
 function buildExport() {
-  const adapter = integrations[state.exportTarget] || integrations.notion;
+  const adapter = integrations[state.exportTarget] || integrations.productivity;
   const payload = {
     sparks: state.sparks.length ? state.sparks : formulateSparks(state.thoughts),
     plan: createPlan(state.sparks.length ? state.sparks : formulateSparks(state.thoughts)),
@@ -1077,7 +1126,7 @@ async function copyExport() {
 }
 
 function downloadExport() {
-  const adapter = integrations[state.exportTarget] || integrations.notion;
+  const adapter = integrations[state.exportTarget] || integrations.productivity;
   const blob = new Blob([buildExport()], { type: adapter.type });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -1108,7 +1157,9 @@ async function shareExport() {
 }
 
 function bumpHatch(amount) {
-  state.hatch = Math.min(100, Math.max(8, state.hatch + amount));
+  const cleanAmount = Number.isFinite(amount) ? amount : 0;
+  state.hatch = Math.min(100, Math.max(8, state.hatch + cleanAmount));
+  state.maturityPoints = Math.max(0, (state.maturityPoints || 0) + Math.max(0, cleanAmount));
 }
 
 function say(message) {

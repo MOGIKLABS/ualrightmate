@@ -929,6 +929,7 @@ h2 {
 }
 
 .meter-block,
+.maturity-card,
 .customizer {
   padding: 15px;
   border-top: 1px solid rgba(188, 175, 255, 0.22);
@@ -965,6 +966,56 @@ h2 {
     radial-gradient(circle at left center, #d7ffd1 0 8px, transparent 9px),
     linear-gradient(90deg, var(--aqua), var(--pink), var(--lime));
   transition: width 220ms ease;
+}
+
+.maturity-card {
+  display: grid;
+  gap: 8px;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(112, 255, 0, 0.12), transparent 9rem),
+    rgba(10, 13, 32, 0.8);
+}
+
+.maturity-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: lowercase;
+}
+
+.maturity-copy strong {
+  color: #f6edff;
+  text-align: right;
+}
+
+.maturity-track {
+  height: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 999px;
+  background: rgba(5, 7, 22, 0.74);
+  overflow: hidden;
+}
+
+.maturity-track span {
+  display: block;
+  width: 7%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--pink), var(--aqua), var(--lime));
+  transition: width 220ms ease;
+}
+
+.maturity-card p {
+  margin: 0;
+  color: rgba(236, 229, 255, 0.72);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-transform: lowercase;
 }
 
 .customizer {
@@ -1574,7 +1625,7 @@ elevenlabs-convai {
 
 .target-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 10px;
   margin-bottom: 12px;
 }
@@ -1589,6 +1640,24 @@ elevenlabs-convai {
   font-size: 13px;
   font-weight: 900;
   text-align: left;
+}
+
+.target > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.target strong,
+.target small {
+  display: block;
+}
+
+.target small {
+  color: rgba(236, 229, 255, 0.66);
+  font-size: 11px;
+  line-height: 1.2;
+  text-transform: lowercase;
 }
 
 .target-icon {
