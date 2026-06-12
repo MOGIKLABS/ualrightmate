@@ -1,3 +1,4 @@
+<img width="1676" height="1025" alt="demo" src="https://github.com/user-attachments/assets/ff410479-be94-450e-8bf7-07c58dbe26ce" />
 # u alright mate?
 
 A cute, non-medical virtual pet for dumping scattered ideas, turning them into sparks, and exporting the result into social posts or workspaces.
