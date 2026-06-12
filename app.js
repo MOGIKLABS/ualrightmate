@@ -324,7 +324,8 @@ function cyclePlayerEmoji() {
   const nextIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
   state.playerEmoji = playerEmojiChoices[nextIndex % playerEmojiChoices.length];
   bumpHatch(2);
-  say(`player emoji ${state.playerEmoji}`);
+  reactOrb(els.orbCharacter, "emoji switched");
+  say(`emoji switched ${state.playerEmoji}`);
   pop(els.avatar);
   flashPanel(els.customizer);
   render();
@@ -333,6 +334,7 @@ function cyclePlayerEmoji() {
 function openThoughtsFeelings() {
   state.activeTab = "sparkList";
   bumpHatch(1);
+  reactOrb(els.orbThoughts, "brain open");
   render();
   els.thoughtBoard?.scrollIntoView({ behavior: "smooth", block: "start" });
   els.thoughtInput?.focus({ preventScroll: true });
@@ -342,9 +344,11 @@ function openThoughtsFeelings() {
 
 function openShare() {
   bumpHatch(1);
+  reactOrb(els.orbExport, "share ready");
   render();
   els.exportPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
   els.exportOutput?.focus({ preventScroll: true });
+  say("share ready");
   if (els.toast) els.toast.textContent = "share open";
   flashPanel(els.exportPanel);
 }
@@ -357,8 +361,22 @@ function addNudgePrompt(message = "tiny prompt dropped in") {
   els.thoughtInput.focus();
   bumpHatch(3);
   saveState();
+  reactOrb(els.orbNudge, "nudge added");
   say(message);
   render();
+}
+
+function reactOrb(element, message) {
+  if (!element) return;
+  element.dataset.reaction = message;
+  element.classList.remove("is-reacting");
+  void element.offsetWidth;
+  element.classList.add("is-reacting");
+  window.clearTimeout(element.reactionTimer);
+  element.reactionTimer = window.setTimeout(() => {
+    element.classList.remove("is-reacting");
+    element.removeAttribute("data-reaction");
+  }, 980);
 }
 
 function flashPanel(element) {
