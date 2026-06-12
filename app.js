@@ -172,10 +172,12 @@ let recognition = null;
 let isListening = false;
 let isSpeaking = false;
 let isSamplePlaying = false;
+let isVoicePanelOpen = false;
 let speechVoices = [];
 let elevenLabsReactionTimer = null;
 let elevenLabsPatchTimer = null;
 let elevenLabsPatchAttempts = 0;
+let elevenLabsScriptRequested = false;
 
 boot();
 
@@ -388,13 +390,18 @@ function flashPanel(element) {
 
 function setupSpeech() {
   setupSpeechSynthesis();
+  if (els.voiceButton) {
+    els.voiceButton.title = "Open Pip voice";
+    els.voiceButton.setAttribute("aria-controls", "voiceAgent");
+    els.voiceButton.setAttribute("aria-expanded", "false");
+    els.voiceButton.addEventListener("click", handleVoiceButtonClick);
+  }
+
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    els.voiceButton.disabled = true;
-    els.voiceButton.title = "Voice capture is unavailable in this browser";
     setVoiceMode("unavailable", "browser voice unavailable");
     setVoiceTranscript("typing lane open");
-    setVoiceReply("Pip can still sort typed sparks");
+    setVoiceReply("Pip live voice is tucked behind the button");
     return;
   }
 
@@ -444,23 +451,62 @@ function setupSpeech() {
     if (!isSpeaking) setVoiceMode("ready");
     renderMeta();
   });
+}
 
-  els.voiceButton.addEventListener("click", () => {
-    if (!recognition) return;
-    if (isListening) {
-      recognition.stop();
-      say("voice paused");
-      return;
-    }
-    stopVoiceSample(true);
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    isSpeaking = false;
-    try {
-      recognition.start();
-    } catch {
-      setVoiceMode("ready", "voice already waking");
-    }
-  });
+function handleVoiceButtonClick() {
+  if (!isVoicePanelOpen) {
+    openVoicePanel("pip voice open");
+    return;
+  }
+
+  loadElevenLabsWidget();
+
+  if (!recognition) {
+    setVoiceMode("ready", "pip live voice open");
+    setVoiceReply("Use Pip live voice here or keep typing");
+    say("pip live voice open");
+    flashPanel(els.voiceAgent);
+    return;
+  }
+
+  if (isListening) {
+    recognition.stop();
+    say("voice paused");
+    return;
+  }
+
+  stopVoiceSample(true);
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  isSpeaking = false;
+  try {
+    recognition.start();
+  } catch {
+    setVoiceMode("ready", "voice already waking");
+  }
+}
+
+function openVoicePanel(message = "pip voice open") {
+  isVoicePanelOpen = true;
+  renderVoicePanelVisibility();
+  loadElevenLabsWidget();
+  setVoiceMode("ready", message);
+  setVoiceReply("Pip live voice is tucked in here");
+  say(message);
+  flashPanel(els.voiceAgent);
+}
+
+function renderVoicePanelVisibility() {
+  if (!els.voiceAgent) return;
+  const isHidden = !isVoicePanelOpen;
+  els.voiceAgent.hidden = isHidden;
+  els.voiceAgent.classList.toggle("is-collapsed", isHidden);
+  els.voiceAgent.classList.toggle("is-open", !isHidden);
+  els.voiceAgent.setAttribute("aria-hidden", String(isHidden));
+
+  if (els.voiceButton) {
+    els.voiceButton.classList.toggle("is-open", !isHidden);
+    els.voiceButton.setAttribute("aria-expanded", String(!isHidden));
+  }
 }
 
 function setupElevenLabsAgent() {
@@ -477,34 +523,80 @@ function setupElevenLabsAgent() {
     els.elevenLabsLink.href = voiceAgentConfig.talkToUrl;
   }
 
+  els.elevenLabsPanel.classList.remove("is-connecting", "is-online", "is-fallback");
+  els.elevenLabsPanel.classList.add("is-dormant");
+  setElevenLabsStatus("hidden");
+
+  if (window.customElements?.get("elevenlabs-convai")) markElevenLabsOnline();
+}
+
+function loadElevenLabsWidget() {
+  if (!els.elevenLabsPanel || !voiceAgentConfig.agentId) return false;
+
+  if (els.elevenLabsConvai) {
+    els.elevenLabsConvai.setAttribute("agent-id", voiceAgentConfig.agentId);
+    if (voiceAgentConfig.branchId) {
+      els.elevenLabsConvai.setAttribute("branch-id", voiceAgentConfig.branchId);
+    }
+  }
+
+  els.elevenLabsPanel.classList.remove("is-dormant", "is-fallback");
+  if (window.customElements?.get("elevenlabs-convai")) return markElevenLabsOnline();
+
   setElevenLabsStatus("connecting");
   els.elevenLabsPanel.classList.add("is-connecting");
 
-  const markOnline = () => {
-    els.elevenLabsPanel.classList.remove("is-connecting", "is-fallback");
-    els.elevenLabsPanel.classList.add("is-online");
-    setElevenLabsStatus("elevenlabs online");
-    setVoiceReply("Pip live voice is linked");
-    elevenLabsPatchAttempts = 0;
-    window.setTimeout(patchElevenLabsWidget, 160);
-    return true;
-  };
+  if (!window.customElements) return markElevenLabsFallback();
 
-  const markFallback = () => {
-    if (window.customElements?.get("elevenlabs-convai")) return markOnline();
-    els.elevenLabsPanel.classList.remove("is-connecting");
-    els.elevenLabsPanel.classList.add("is-fallback");
-    setElevenLabsStatus("open agent ready");
+  if (elevenLabsScriptRequested) return false;
+  elevenLabsScriptRequested = true;
+
+  const existingScript = document.querySelector("script[src*='convai-widget-embed']");
+  if (existingScript) {
+    existingScript.addEventListener("load", waitForElevenLabsWidget, { once: true });
+    window.setTimeout(markElevenLabsFallback, 5000);
     return false;
-  };
+  }
 
+  const script = document.createElement("script");
+  script.src = "https://unpkg.com/@elevenlabs/convai-widget-embed";
+  script.async = true;
+  script.type = "text/javascript";
+  script.dataset.pipElevenlabs = "true";
+  script.addEventListener("load", waitForElevenLabsWidget, { once: true });
+  script.addEventListener("error", markElevenLabsFallback, { once: true });
+  document.head.append(script);
+  window.setTimeout(markElevenLabsFallback, 5000);
+  return false;
+}
+
+function waitForElevenLabsWidget() {
   if (!window.customElements) {
-    markFallback();
+    markElevenLabsFallback();
     return;
   }
 
-  window.customElements.whenDefined("elevenlabs-convai").then(markOnline).catch(markFallback);
-  window.setTimeout(markFallback, 3600);
+  window.customElements.whenDefined("elevenlabs-convai").then(markElevenLabsOnline).catch(markElevenLabsFallback);
+}
+
+function markElevenLabsOnline() {
+  if (!els.elevenLabsPanel) return false;
+  els.elevenLabsPanel.classList.remove("is-connecting", "is-fallback", "is-dormant");
+  els.elevenLabsPanel.classList.add("is-online");
+  setElevenLabsStatus("elevenlabs online");
+  setVoiceReply("Pip live voice is linked");
+  elevenLabsPatchAttempts = 0;
+  window.setTimeout(patchElevenLabsWidget, 160);
+  return true;
+}
+
+function markElevenLabsFallback() {
+  if (window.customElements?.get("elevenlabs-convai")) return markElevenLabsOnline();
+  if (!els.elevenLabsPanel) return false;
+  els.elevenLabsPanel.classList.remove("is-connecting", "is-dormant");
+  els.elevenLabsPanel.classList.add("is-fallback");
+  setElevenLabsStatus("open agent ready");
+  return false;
 }
 
 function setupVoiceSample() {
@@ -759,6 +851,7 @@ function setVoiceMode(mode, message) {
   document.body.dataset.voiceMode = mode;
   if (els.voiceStatus) els.voiceStatus.textContent = message || labels[mode] || labels.ready;
   if (els.voiceButton) els.voiceButton.setAttribute("aria-pressed", String(mode === "listening"));
+  renderVoicePanelVisibility();
 }
 
 function setVoiceTranscript(text) {
@@ -780,6 +873,7 @@ function setElevenLabsStatus(text) {
 
 function renderVoiceAgent() {
   if (!els.voiceAgent) return;
+  renderVoicePanelVisibility();
   els.voiceAgent.classList.toggle("is-listening", isListening);
   els.voiceAgent.classList.toggle("is-speaking", isSpeaking);
   els.voiceAgent.classList.toggle("is-sample", isSamplePlaying);
