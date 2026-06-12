@@ -140,6 +140,24 @@ svg {
   gap: 0;
 }
 
+.brand-logo-title {
+  width: clamp(260px, 31vw, 470px);
+  height: 72px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.brand-logo-title img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 58%;
+  filter:
+    saturate(1.08)
+    drop-shadow(0 0 14px rgba(179, 71, 255, 0.36));
+}
+
 h1,
 h2,
 h3,
@@ -1974,8 +1992,9 @@ elevenlabs-convai {
     border-radius: 18px;
   }
 
-  h1 {
-    font-size: 24px;
+  .brand-logo-title {
+    width: min(100%, 390px);
+    height: 62px;
   }
 
   .status-strip {
