@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="u alright mate? is a cute non-medical virtual pet for idea dumping, formulating, and exporting thoughts into work or social posts."
+    />
+    <title>u alright mate?</title>
+    <link rel="stylesheet" href="./styles.css?v=20260612i" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar" aria-label="App header">
+        <div class="brand-block">
+          <div>
+            <h1>u alright mate?</h1>
+            <p>tiny egg pal for messy ideas</p>
+          </div>
+        </div>
+        <div class="status-strip" aria-live="polite">
+          <span id="petStatus">egg mode</span>
+          <span id="sparkCount">0 sparks</span>
+          <span id="sessionStamp">saved locally</span>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="pet-console" aria-labelledby="petTitle">
+          <div class="window-bar">
+            <span class="window-dot aqua"></span>
+            <span class="window-dot pink"></span>
+            <span class="window-dot lime"></span>
+            <span>matepod.exe</span>
+          </div>
+
+          <div class="pet-stage">
+            <div class="device-shell">
+              <button id="orbCharacter" class="device-orb orb-spark" type="button" aria-label="Change player emoji" title="Character emoji">
+                <svg viewBox="0 0 24 24">
+                  <path d="m12 4 1.9 5.4L20 12l-6.1 2.6L12 20l-1.9-5.4L4 12l6.1-2.6L12 4Z" />
+                </svg>
+              </button>
+              <button id="orbThoughts" class="device-orb orb-close" type="button" aria-label="Open thoughts and feelings" title="Thoughts/feelings">
+                <span class="orb-emoji" aria-hidden="true">🧠</span>
+              </button>
+              <button id="orbNudge" class="device-orb orb-shield" type="button" aria-label="Drop a nudge" title="Nudge">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 4 5 7v5c0 4.3 2.8 6.9 7 8 4.2-1.1 7-3.7 7-8V7l-7-3Z" />
+                </svg>
+              </button>
+              <button id="orbExport" class="device-orb orb-export" type="button" aria-label="Open send out" title="Send out">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 6h16v12H4zM8 10h5M8 14h8M16 9l3 3-3 3" />
+                </svg>
+              </button>
+
+              <div class="device-title" aria-hidden="true">
+                <span id="playerEmoji" class="player-emoji">🥚</span>
+                <span id="characterName">Pip</span>
+              </div>
+
+              <div class="device-screen">
+                <div class="screen-glow" aria-hidden="true"></div>
+                <div id="avatar" class="hatch-avatar blue gloss starry stage-egg character-pip" aria-label="Pip hatching character">
+                  <div class="pet-art pip-art" aria-hidden="true">
+                    <img src="./assets/pip.jpg" alt="" />
+                  </div>
+                  <div class="pet-art egg-art" aria-hidden="true">
+                    <img src="./assets/egg.jpg" alt="" />
+                  </div>
+                  <span class="hatch-crack" aria-hidden="true"></span>
+                  <span class="hatch-sparkles" aria-hidden="true"></span>
+                  <span class="hatch-accessory" aria-hidden="true"></span>
+                </div>
+                <div id="petBubble" class="pet-bubble">drop the scrambled bits here, mate</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="meter-block" aria-label="Hatching progress">
+            <div class="meter-label">
+              <span>hatch charge</span>
+              <strong id="hatchPercent">8%</strong>
+            </div>
+            <div class="meter-track">
+              <div id="hatchFill" class="meter-fill"></div>
+            </div>
+          </div>
+
+          <div class="customizer" aria-labelledby="customizeTitle">
+            <h2 id="customizeTitle">character</h2>
+            <div class="character-row" aria-label="Character roster">
+              <button class="character-card active" data-character="pip" type="button">
+                <span class="character-dot pip-dot"></span>
+                <span>Pip</span>
+              </button>
+              <button class="character-card locked" data-character="day2" type="button" disabled>
+                <span class="character-dot moss-dot"></span>
+                <span>Moss</span>
+              </button>
+              <button class="character-card locked" data-character="day5" type="button" disabled>
+                <span class="character-dot nova-dot"></span>
+                <span>Nova</span>
+              </button>
+            </div>
+            <div class="control-row" aria-label="Glow color">
+              <button class="swatch blue active" data-color="blue" aria-label="Blue shell"></button>
+              <button class="swatch pink" data-color="pink" aria-label="Pink shell"></button>
+              <button class="swatch lime" data-color="lime" aria-label="Lime shell"></button>
+              <button class="swatch peach" data-color="peach" aria-label="Peach shell"></button>
+            </div>
+            <div class="segmented" aria-label="Shell finish">
+              <button class="active" data-finish="gloss">gloss</button>
+              <button data-finish="pixel">pixel</button>
+              <button data-finish="chrome">chrome</button>
+            </div>
+            <div class="segmented" aria-label="Accessory">
+              <button class="active" data-accessory="starry">star</button>
+              <button data-accessory="halo">halo</button>
+              <button data-accessory="ribbon">ribbon</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="thought-board" aria-labelledby="dumpTitle">
+          <div class="window-bar module-bar">
+            <span class="window-dot aqua"></span>
+            <span class="window-dot pink"></span>
+            <span class="window-dot lime"></span>
+            <span class="module-label"><span class="module-emoji" aria-hidden="true">🧠</span><span>thoughts/feelings.exe</span></span>
+          </div>
+
+          <div class="panel-body">
+            <div class="panel-heading">
+              <div>
+                <h2 id="dumpTitle">thoughts/feelings</h2>
+                <p>voice-note energy, keyboard speed</p>
+              </div>
+              <button id="clearButton" class="icon-button" type="button" aria-label="Clear board" title="Clear board">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 7h16M10 11v6M14 11v6M9 7l1-2h4l1 2M6 7l1 13h10l1-13" />
+                </svg>
+              </button>
+            </div>
+
+            <label class="input-label" for="thoughtInput">spill it</label>
+            <textarea
+              id="thoughtInput"
+              rows="8"
+              placeholder="half-formed ideas, feelings, rants, errands, launch thoughts, captions..."
+            ></textarea>
+
+            <div class="toolbar" aria-label="Capture controls">
+              <button id="sparkButton" class="primary-button" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m12 3 1.7 5.2L19 10l-5.3 1.8L12 17l-1.7-5.2L5 10l5.3-1.8L12 3Z" />
+                  <path d="m18 15 .8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8L18 15Z" />
+                </svg>
+                make sparks
+              </button>
+              <button id="nudgeButton" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 5v14l11-7L8 5Z" />
+                </svg>
+                nudge
+              </button>
+              <button id="voiceButton" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 4a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V7a3 3 0 0 0-3-3Z" />
+                  <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+                </svg>
+                voice
+              </button>
+            </div>
+
+            <div id="voiceAgent" class="voice-agent" aria-live="polite">
+              <div class="voice-agent-head">
+                <span id="voicePulse" class="voice-pulse" aria-hidden="true"></span>
+                <strong id="voiceStatus">pip voice ready</strong>
+              </div>
+              <div id="voiceReactor" class="voice-reactor" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div id="elevenLabsPanel" class="elevenlabs-panel">
+                <div class="elevenlabs-panel-head">
+                  <div>
+                    <strong>pip live voice</strong>
+                    <p id="elevenLabsStatus">connecting</p>
+                  </div>
+                  <div class="voice-action-row">
+                    <button id="sampleVoiceButton" class="sample-voice-button" type="button">sample</button>
+                    <a
+                      id="elevenLabsLink"
+                      href="https://elevenlabs.io/app/talk-to?agent_id=agent_6201kty2gjtrf0arxm1qczvtbqb8&amp;branch_id=agtbrch_2901kty2gmbffxh9as8qn2znfmv9"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Open Pip live voice agent"
+                    >
+                      open
+                    </a>
+                  </div>
+                </div>
+                <div class="elevenlabs-widget-shell">
+                  <elevenlabs-convai
+                    id="elevenLabsConvai"
+                    agent-id="agent_6201kty2gjtrf0arxm1qczvtbqb8"
+                    branch-id="agtbrch_2901kty2gmbffxh9as8qn2znfmv9"
+                  ></elevenlabs-convai>
+                </div>
+              </div>
+              <div class="voice-agent-grid">
+                <div>
+                  <span>heard</span>
+                  <p id="voiceTranscript">waiting</p>
+                </div>
+                <div>
+                  <span>pip</span>
+                  <p id="voiceReply">ready for a spark</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="tabs" role="tablist" aria-label="Output views">
+              <button class="active" role="tab" aria-selected="true" data-tab="sparkList">sparks</button>
+              <button role="tab" aria-selected="false" data-tab="planView">plan</button>
+              <button role="tab" aria-selected="false" data-tab="postView">post</button>
+            </div>
+
+            <div class="output-zone">
+              <div id="sparkList" class="tab-panel active" role="tabpanel">
+                <ol id="sparkItems" class="spark-list"></ol>
+                <p id="emptyState" class="empty-state">your pet is waiting by the inbox</p>
+              </div>
+              <div id="planView" class="tab-panel" role="tabpanel">
+                <div id="planItems" class="plan-list"></div>
+              </div>
+              <div id="postView" class="tab-panel" role="tabpanel">
+                <textarea id="postOutput" rows="8" aria-label="Social post output"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="export-panel" aria-labelledby="exportTitle">
+          <div class="window-bar module-bar">
+            <span class="window-dot aqua"></span>
+            <span class="window-dot pink"></span>
+            <span class="window-dot lime"></span>
+            <span>sendout.exe</span>
+          </div>
+
+          <div class="panel-body">
+            <div class="panel-heading">
+              <div>
+                <h2 id="exportTitle">send out</h2>
+                <p>workspaces, notes, socials</p>
+              </div>
+              <button id="copyButton" class="icon-button" type="button" aria-label="Copy current output" title="Copy">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 9h10v10H9z" />
+                  <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="target-grid">
+              <button data-export="notion" class="target active" type="button">
+                <span class="target-icon">N</span>
+                <span>Notion</span>
+              </button>
+              <button data-export="obsidian" class="target" type="button">
+                <span class="target-icon">O</span>
+                <span>Obsidian</span>
+              </button>
+              <button data-export="docs" class="target" type="button">
+                <span class="target-icon">G</span>
+                <span>Workspace</span>
+              </button>
+              <button data-export="social" class="target" type="button">
+                <span class="target-icon">@</span>
+                <span>Social</span>
+              </button>
+            </div>
+
+            <textarea id="exportOutput" rows="13" aria-label="Export output"></textarea>
+
+            <div class="export-actions">
+              <button id="downloadButton" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+                </svg>
+                download
+              </button>
+              <button id="shareButton" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M18 8a3 3 0 1 0-2.8-4M6 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm12 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM8.7 16.5l6.6-3M8.7 7.5l6.6 3" />
+                </svg>
+                share
+              </button>
+            </div>
+
+            <div class="mini-log" aria-live="polite">
+              <span id="toast">ready</span>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <audio id="pipVoiceSample" src="./assets/pip_voice_sample_10s.mp3" preload="metadata"></audio>
+    <script>
+      window.U_ALRIGHT_MATE_VOICE_AGENT = {
+        provider: "elevenlabs",
+        agentId: "agent_6201kty2gjtrf0arxm1qczvtbqb8",
+        branchId: "agtbrch_2901kty2gmbffxh9as8qn2znfmv9",
+        talkToUrl:
+          "https://elevenlabs.io/app/talk-to?agent_id=agent_6201kty2gjtrf0arxm1qczvtbqb8&branch_id=agtbrch_2901kty2gmbffxh9as8qn2znfmv9",
+      };
+    </script>
+    <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+    <script src="./app.js?v=20260612i"></script>
+  </body>
+</html>
